@@ -1,0 +1,22 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "username": "Balaji Patel",
+      "email": "Balaji@takatak.com",
+      "password": "$2a$10$AvmkJLKYP2JZ1.MQUaOwzOuUIu.lb4wpS77PL1udSFBb.v8hAs6q6",
+      "created_at": "2026-09-14T06:47:23.863Z"
+    }
+  ],
+  "blogs": [
+    {
+      "id": 1,
+      "title": "Virat K",
+      "content": "Virat Kohli is known as one of the greatest cricketers in India, OK?",
+      "status": "published",
+      "user_id": 1,
+      "created_at": "2026-09-14T06:48:02.488Z",
+      "updated_at": "2026-09-14T06:48:02.488Z"
+    }
+  ]
+}

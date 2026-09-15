@@ -1,0 +1,16 @@
+{
+  "name": "blog-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Full-stack blogging platform",
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "start:backend": "cd backend && node server.js",
+    "start:frontend": "cd frontend && npm run dev",
+    "start": "concurrently \"npm run start:backend\" \"npm run start:frontend\"",
+    "setup": "npm install && npm run install:all"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
