@@ -135,8 +135,150 @@ app.put('/api/me', authenticateToken, (req, res) => {
   }
 });
 
-// Blogs routes (omitted for brevity, keep your existing logic here)
-// Make sure to add this static file serving and catch-all at the END!
+// Blogs routes
+app.get('/api/blogs', async (req, res) => {
+  try {
+    const db = readDB();
+    const publishedBlogs = db.blogs.filter(b => b.status === 'published');
+    res.json(publishedBlogs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/blogs/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = readDB();
+    const blog = db.blogs.find(b => b.id === parseInt(req.params.id));
+    if (!blog) return res.sendStatus(404);
+    // Allow viewing own drafts or any published
+    if (blog.status === 'published' || blog.user_id === req.user.id) {
+      res.json(blog);
+    } else {
+      res.sendStatus(403);
+    }
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.post('/api/blogs', authenticateToken, async (req, res) => {
+  try {
+    const { title, content, status = 'draft' } = req.body;
+    if (!title || !content) {
+      return res.status(400).json({ message: 'Title and content are required' });
+    }
+
+    const db = readDB();
+    const blog = {
+      id: db.blogs.length + 1,
+      title,
+      content,
+      status,
+      user_id: req.user.id,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+    db.blogs.push(blog);
+    writeDB(db);
+
+    res.status(201).json(blog);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.put('/api/blogs/:id', authenticateToken, async (req, res) => {
+  try {
+    const { title, content, status } = req.body;
+    const db = readDB();
+    const idx = db.blogs.findIndex(b => b.id === parseInt(req.params.id));
+    if (idx === -1) return res.sendStatus(404);
+
+    // Only allow owner to update
+    if (db.blogs[idx].user_id !== req.user.id) {
+      return res.sendStatus(403);
+    }
+
+    db.blogs[idx] = {
+      ...db.blogs[idx],
+      title: title !== undefined ? title : db.blogs[idx].title,
+      content: content !== undefined ? content : db.blogs[idx].content,
+      status: status !== undefined ? status : db.blogs[idx].status,
+      updated_at: new Date().toISOString()
+    };
+    writeDB(db);
+
+    res.json(db.blogs[idx]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.delete('/api/blogs/:id', authenticateToken, async (req, res) => {
+  try {
+    const db = readDB();
+    const idx = db.blogs.findIndex(b => b.id === parseInt(req.params.id));
+    if (idx === -1) return res.sendStatus(404);
+
+    // Only allow owner to delete
+    if (db.blogs[idx].user_id !== req.user.id) {
+      return res.sendStatus(403);
+    }
+
+    db.blogs.splice(idx, 1);
+    writeDB(db);
+
+    res.sendStatus(204);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Get my blogs
+app.get('/api/my-blogs', authenticateToken, async (req, res) => {
+  try {
+    const db = readDB();
+    const myBlogs = db.blogs.filter(b => b.user_id === req.user.id);
+    res.json(myBlogs);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Subscribe routes (simplified)
+app.post('/api/subscribe', authenticateToken, async (req, res) => {
+  try {
+    const db = readDB();
+    const userIdx = db.users.findIndex(u => u.id === req.user.id);
+    if (userIdx === -1) return res.sendStatus(404);
+
+    // In a real app, you'd have a subscriptions collection
+    // For now, just acknowledge
+    res.json({ message: 'Subscribed successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+app.get('/api/subscribers/count', async (req, res) => {
+  try {
+    const db = readDB();
+    // Count users with non-empty twitter/github as proxy? Or just total users
+    const count = db.users.length;
+    res.json({ count });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
 
 // --- STATIC FILES (FRONTEND) ---
 // Note: We go up one level (..) to find frontend directory from backend
