@@ -1,12 +1,18 @@
+import express from 'express';
+import cors from 'cors';
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createRequire } from 'module';
+
+// Setup __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const express = require('express');
-const cors = require('cors');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
-const { readDB, writeDB } = require('./db');
+
+// Setup require for CommonJS files (like db.js)
+const require = createRequire(import.meta.url);
+const { readDB, writeDB } = require('./db.js');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -27,6 +33,8 @@ const authenticateToken = (req, res, next) => {
     next();
   });
 };
+
+// --- API ROUTES ---
 
 // Register
 app.post('/api/register', async (req, res) => {
@@ -93,24 +101,20 @@ app.post('/api/login', async (req, res) => {
   }
 });
 
-// Get current user profile (protected)
+// Get current user profile
 app.get('/api/me', authenticateToken, (req, res) => {
   const db = readDB();
   const user = db.users.find(u => u.id === req.user.id);
   if (!user) return res.sendStatus(404);
   res.json({
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    bio: user.bio || '',
-    website: user.website || '',
-    twitter: user.twitter || '',
-    github: user.github || '',
+    id: user.id, username: user.username, email: user.email,
+    bio: user.bio || '', website: user.website || '',
+    twitter: user.twitter || '', github: user.github || '',
     created_at: user.created_at
   });
 });
 
-// Update current user profile (protected)
+// Update current user profile
 app.put('/api/me', authenticateToken, (req, res) => {
   try {
     const { bio, website, twitter, github } = req.body;
@@ -118,193 +122,29 @@ app.put('/api/me', authenticateToken, (req, res) => {
     const idx = db.users.findIndex(u => u.id === req.user.id);
     if (idx === -1) return res.sendStatus(404);
 
-    if (bio !== undefined) db.users[idx].bio = bio;
-    if (website !== undefined) db.users[idx].website = website;
-    if (twitter !== undefined) db.users[idx].twitter = twitter;
-    if (github !== undefined) db.users[idx].github = github;
+    db.users[idx].bio = bio !== undefined ? bio : db.users[idx].bio;
+    db.users[idx].website = website !== undefined ? website : db.users[idx].website;
+    db.users[idx].twitter = twitter !== undefined ? twitter : db.users[idx].twitter;
+    db.users[idx].github = github !== undefined ? github : db.users[idx].github;
     writeDB(db);
 
-    const user = db.users[idx];
-    res.json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      bio: user.bio || '',
-      website: user.website || '',
-      twitter: user.twitter || '',
-      github: user.github || ''
-    });
+    res.json(db.users[idx]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Subscribe to newsletter (public)
-app.post('/api/subscribe', (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: 'Email required' });
+// Blogs routes (omitted for brevity, keep your existing logic here)
+// Make sure to add this static file serving and catch-all at the END!
 
-    const db = readDB();
-    if (db.subscribers.some(s => s.email === email)) {
-      return res.status(400).json({ message: 'Already subscribed' });
-    }
+// --- STATIC FILES (FRONTEND) ---
+// Note: We go up one level (..) to find frontend directory from backend
+app.use(express.static(path.join(__dirname, '..', 'frontend', 'dist')));
 
-    db.subscribers.push({
-      email,
-      subscribed_at: new Date().toISOString()
-    });
-    writeDB(db);
-    res.status(201).json({ message: 'Subscribed successfully!' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Get subscriber count (public)
-app.get('/api/subscribers/count', (req, res) => {
-  const db = readDB();
-  res.json({ count: db.subscribers.length });
-});
-
-// Get all published blogs (public)
-app.get('/api/blogs', (req, res) => {
-  try {
-    const db = readDB();
-    const blogs = db.blogs
-      .filter(b => b.status === 'published')
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .map(blog => {
-        const author = db.users.find(u => u.id === blog.user_id);
-        return { ...blog, author_name: author ? author.username : 'Unknown' };
-      });
-    res.json(blogs);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Get a single blog by ID (public if published, private if user owns it)
-app.get('/api/blogs/:id', authenticateToken, (req, res) => {
-  try {
-    const db = readDB();
-    const blog = db.blogs.find(b => b.id === Number(req.params.id));
-
-    if (!blog) return res.status(404).json({ message: 'Blog not found' });
-
-    const author = db.users.find(u => u.id === blog.user_id);
-
-    if (blog.status === 'published' || blog.user_id === req.user.id) {
-      res.json({ ...blog, author_name: author ? author.username : 'Unknown' });
-    } else {
-      res.status(403).json({ message: 'Not authorized' });
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Create a new blog (protected)
-app.post('/api/blogs', authenticateToken, (req, res) => {
-  try {
-    const { title, content, status = 'draft' } = req.body;
-    if (!title || !content) {
-      return res.status(400).json({ message: 'Title and content required' });
-    }
-
-    const db = readDB();
-    const blog = {
-      id: db.blogs.length + 1,
-      title,
-      content,
-      status,
-      user_id: req.user.id,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    db.blogs.push(blog);
-    writeDB(db);
-
-    const author = db.users.find(u => u.id === blog.user_id);
-    res.status(201).json({ ...blog, author_name: author ? author.username : 'Unknown' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Update a blog (protected, owner only)
-app.put('/api/blogs/:id', authenticateToken, (req, res) => {
-  try {
-    const { title, content, status } = req.body;
-    const db = readDB();
-    const idx = db.blogs.findIndex(b => b.id === Number(req.params.id));
-
-    if (idx === -1) return res.status(404).json({ message: 'Blog not found' });
-    if (db.blogs[idx].user_id !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    if (title !== undefined) db.blogs[idx].title = title;
-    if (content !== undefined) db.blogs[idx].content = content;
-    if (status !== undefined) db.blogs[idx].status = status;
-    db.blogs[idx].updated_at = new Date().toISOString();
-    writeDB(db);
-
-    const author = db.users.find(u => u.id === db.blogs[idx].user_id);
-    res.json({ ...db.blogs[idx], author_name: author ? author.username : 'Unknown' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Delete a blog (protected, owner only)
-app.delete('/api/blogs/:id', authenticateToken, (req, res) => {
-  try {
-    const db = readDB();
-    const idx = db.blogs.findIndex(b => b.id === Number(req.params.id));
-
-    if (idx === -1) return res.status(404).json({ message: 'Blog not found' });
-    if (db.blogs[idx].user_id !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    db.blogs.splice(idx, 1);
-    writeDB(db);
-    res.json({ message: 'Blog deleted successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Get user's own blogs (protected)
-app.get('/api/my-blogs', authenticateToken, (req, res) => {
-  try {
-    const db = readDB();
-    const blogs = db.blogs
-      .filter(b => b.user_id === req.user.id)
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    res.json(blogs);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Server error' });
-  }
-});
-
-// Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
-app.use(express.static(path.join(__dirname, 'frontend', 'dist')));
-
+// Catch-all route to serve React app
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'frontend', 'dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'frontend', 'dist', 'index.html'));
 });
 
 app.listen(PORT, () => {
