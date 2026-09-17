@@ -23,7 +23,7 @@ function Home() {
         </div>
 
         <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-          {blogs.map(blog => (
+          {(blogs || []).map(blog => (
             <article key={blog.id} className="flex flex-col overflow-hidden rounded-xl border border-stone/50 bg-paper/50 hover:bg-paper transition-colors duration-300">
               <div className="flex-1 bg-paper p-6 flex flex-col justify-between">
                 <div className="flex-1">
