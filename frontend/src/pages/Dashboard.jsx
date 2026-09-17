@@ -88,32 +88,36 @@ function Dashboard() {
           </div>
         ) : (
           <div className="space-y-4">
-            {blogs.map(blog => (
-              <div key={blog.id} className="bg-paper border border-stone/50 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                      blog.status === 'published' ? 'bg-ochre/10 text-ochre' : 'bg-ink/5 text-ink/60'
-                    }`}>
-                      {blog.status}
-                    </span>
-                    <span className="text-xs text-ink/40">{new Date(blog.created_at).toLocaleDateString()}</span>
+            {blogs && Array.isArray(blogs) ? (
+              blogs.map(blog => (
+                <div key={blog.id} className="bg-paper border border-stone/50 rounded-xl p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                        blog.status === 'published' ? 'bg-ochre/10 text-ochre' : 'bg-ink/5 text-ink/60'
+                      }`}>
+                        {blog.status}
+                      </span>
+                      <span className="text-xs text-ink/40">{new Date(blog.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-ink truncate">{blog.title}</h3>
                   </div>
-                  <h3 className="text-lg font-semibold text-ink truncate">{blog.title}</h3>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Link to={`/blog/${blog.id}`} className="p-2 text-ink/50 hover:text-ochre hover:bg-stone/20 rounded-lg transition-colors">
+                      <Eye size={18} />
+                    </Link>
+                    <Link to={`/blog/edit/${blog.id}`} className="p-2 text-ink/50 hover:text-ochre hover:bg-stone/20 rounded-lg transition-colors">
+                      <Edit3 size={18} />
+                    </Link>
+                    <button onClick={() => handleDelete(blog.id)} className="p-2 text-ink/50 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2 shrink-0">
-                  <Link to={`/blog/${blog.id}`} className="p-2 text-ink/50 hover:text-ochre hover:bg-stone/20 rounded-lg transition-colors">
-                    <Eye size={18} />
-                  </Link>
-                  <Link to={`/blog/edit/${blog.id}`} className="p-2 text-ink/50 hover:text-ochre hover:bg-stone/20 rounded-lg transition-colors">
-                    <Edit3 size={18} />
-                  </Link>
-                  <button onClick={() => handleDelete(blog.id)} className="p-2 text-ink/50 hover:text-ink hover:bg-ink/5 rounded-lg transition-colors">
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p>Loading...</p>
+            )}
           </div>
         )}
       </div>
