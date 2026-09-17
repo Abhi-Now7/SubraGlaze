@@ -48,20 +48,20 @@ function Settings() {
     }
   };
 
-  if (loading) return <div className="text-center py-20 text-ink/40">Loading profile...</div>;
+  if (loading) return <div className="fade-in text-center py-20 text-ink/40">Loading profile...</div>;
 
   return (
-    <Layout>
+    <Layout className="fade-in">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <h1 className="text-4xl font-extrabold text-ink">Profile & Settings</h1>
         <p className="mt-2 text-ink/60">Your public profile — shown alongside your published stories.</p>
 
-        <div className="mt-6 bg-paper border border-stone/50 rounded-xl p-6 shadow-sm">
+        <div className="mt-6 card">
           <p className="text-sm text-ink/60">Signed in as</p>
           <p className="text-lg font-semibold text-ink">{auth?.user?.username}</p>
         </div>
 
-        <form onSubmit={handleSave} className="mt-8 space-y-6 bg-paper border border-stone/50 rounded-xl p-8 shadow-sm">
+        <form onSubmit={handleSave} className="mt-8 space-y-6 card">
           {message && <p className="rounded-md bg-ochre/10 text-ochre px-4 py-3">{message}</p>}
           {error && <p className="rounded-md bg-ink/5 text-ink/20 px-4 py-3">{error}</p>}
 
@@ -71,7 +71,7 @@ function Settings() {
               value={profile.bio}
               onChange={(e) => setProfile({ ...profile, bio: e.target.value })}
               rows="3"
-              className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/50 focus:outline-none focus:ring-2 focus:ring-ochre"
+              className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/70 focus:outline-none focus:ring-2 focus:ring-ochre"
               placeholder="Tell readers who you are..."
             />
           </div>
@@ -83,7 +83,7 @@ function Settings() {
                 type="url"
                 value={profile.website}
                 onChange={(e) => setProfile({ ...profile, website: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/50 focus:outline-none focus:ring-2 focus:ring-ochre"
+                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/70 focus:outline-none focus:ring-2 focus:ring-ochre"
                 placeholder="https://..."
               />
             </div>
@@ -93,7 +93,7 @@ function Settings() {
                 type="text"
                 value={profile.twitter}
                 onChange={(e) => setProfile({ ...profile, twitter: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/50 focus:outline-none focus:ring-2 focus:ring-ochre"
+                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/70 focus:outline-none focus:ring-2 focus:ring-ochre"
                 placeholder="@username"
               />
             </div>
@@ -103,13 +103,13 @@ function Settings() {
                 type="text"
                 value={profile.github}
                 onChange={(e) => setProfile({ ...profile, github: e.target.value })}
-                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/50 focus:outline-none focus:ring-2 focus:ring-ochre"
+                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/70 focus:outline-none focus:ring-2 focus:ring-ochre"
                 placeholder="@username"
               />
             </div>
           </div>
 
-          <button type="submit" className="bg-ochre hover:bg-ochre/90 text-paper px-6 py-3 rounded-full font-medium shadow-sm hover:shadow-md transition-all">
+          <button type="submit" className="btn-primary">
             Save Profile
           </button>
         </form>

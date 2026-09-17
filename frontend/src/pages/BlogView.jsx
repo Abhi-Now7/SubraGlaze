@@ -73,16 +73,16 @@ function BlogView() {
     if (blog) setBlog({ ...blog, [field]: value });
   };
 
-  if (loading) return <div className="text-center py-20 text-ink/40">Loading...</div>;
+  if (loading) return <div className="fade-in text-center py-20 text-ink/40">Loading...</div>;
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <button onClick={() => navigate(-1)} className="mb-8 inline-flex items-center gap-2 text-sm text-ink/60 hover:text-ink transition-colors">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-10 fade-in">
+        <button onClick={() => navigate(-1)} className="link-animate mb-8 inline-flex items-center gap-2 text-sm text-ink/60 hover:text-ochre">
           <ArrowLeft size={16} /> Back
         </button>
 
-        {error && <p className="mb-6 rounded-md bg-ink/5 text-ink/20 px-4 py-3">{error}</p>}
+        {error && <p className="mb-6 rounded-md bg-ink/5 text-ink/60 px-4 py-3">{error}</p>}
 
         {/* Create / Edit form */}
         {(isNew || isEdit) ? (
@@ -97,7 +97,7 @@ function BlogView() {
                 value={blog?.title || ''}
                 onChange={(e) => updateField('title', e.target.value)}
                 required
-                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/50 focus:outline-none focus:ring-2 focus:ring-ochre focus:border-ochre text-lg"
+                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/70 focus:outline-none focus:ring-2 focus:ring-ochre focus:border-ochre text-xl"
                 placeholder="Your compelling title..."
               />
             </div>
@@ -108,7 +108,7 @@ function BlogView() {
                 onChange={(e) => updateField('content', e.target.value)}
                 rows="14"
                 required
-                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/50 focus:outline-none focus:ring-2 focus:ring-ochre focus:border-ochre"
+                className="w-full px-4 py-3 rounded-lg border border-ink/20 bg-paper/70 focus:outline-none focus:ring-2 focus:ring-ochre"
                 placeholder="Write your story here..."
               />
             </div>
@@ -117,7 +117,7 @@ function BlogView() {
               <select
                 value={blog?.status || 'draft'}
                 onChange={(e) => updateField('status', e.target.value)}
-                className="w-full sm:w-64 px-3 py-2 rounded-lg border border-ink/20 bg-paper/50 focus:outline-none focus:ring-ochre"
+                className="w-full sm:w-64 px-3 py-2 rounded-lg border border-ink/20 bg-paper/70 focus:outline-none focus:ring-ochre"
               >
                 <option value="draft">Draft (only visible to you)</option>
                 <option value="published">Published (visible to everyone)</option>
@@ -128,7 +128,7 @@ function BlogView() {
               <button
                 type="submit"
                 disabled={saving}
-                className="bg-ochre hover:bg-ochre/90 disabled:opacity-50 text-paper px-6 py-3 rounded-full font-medium flex items-center gap-2 shadow-sm hover:shadow-md transition-all"
+                className="btn-primary"
               >
                 <Save size={18} /> {saving ? 'Saving...' : (isNew ? 'Publish / Save' : 'Update Story')}
               </button>
@@ -142,7 +142,7 @@ function BlogView() {
           <article className="prose-article">
             <div className="mb-6">
               <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                blog?.status === 'published' ? 'bg-ochre/10 text-ochre' : 'bg-ochre/20 text-ochre/80'
+                blog?.status === 'published' ? 'bg-ochre/10 text-ochre' : 'bg-ink/5 text-ink/60'
               }`}>
                 {blog?.status}
               </span>
@@ -161,7 +161,7 @@ function BlogView() {
               <div className="mt-8 mb-8">
                 <button
                   onClick={() => navigate(`/blog/edit/${blog.id}`)}
-                  className="bg-ink/50 hover:bg-ink/60 text-paper px-5 py-2.5 rounded-full font-medium transition-all"
+                  className="btn-primary"
                 >
                   Edit Story
                 </button>

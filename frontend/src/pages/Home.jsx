@@ -22,9 +22,9 @@ function Home() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 slide-up">
           {(blogs || []).map(blog => (
-            <article key={blog.id} className="flex flex-col overflow-hidden rounded-xl border border-stone/50 bg-paper/50 hover:bg-paper transition-colors duration-300">
+            <article key={blog.id} className="card hover-lift">
               <div className="flex-1 bg-paper p-6 flex flex-col justify-between">
                 <div className="flex-1">
                   <p className="text-sm font-medium text-ochre/60">

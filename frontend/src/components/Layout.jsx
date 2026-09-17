@@ -6,7 +6,7 @@ function Layout({ children }) {
   return (
     <>
       <Navbar />
-      <main className="pb-12">
+      <main className="pb-12 fade-in">
         {children}
       </main>
       <Footer />
